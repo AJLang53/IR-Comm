@@ -81,11 +81,3 @@ class rx:
         transAddress = trans[dataBits:]
             
         return (transData, transAddress)
-    
-    def end(self):
-        """
-        Ends the pi connection
-        """
-        
-        self.pi.stop()
-        return
