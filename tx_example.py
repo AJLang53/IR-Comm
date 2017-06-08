@@ -4,7 +4,7 @@ import ir_tx
 
 pi = pigpio.pi()
 
-tx = ir_tx.tx(pi, 22, 38000)
+tx = ir_tx.tx(pi, 18, 38000)
 
 tx.clear_code()
 
