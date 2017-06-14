@@ -5,7 +5,7 @@ class tx:
     def __init__(self, pi, gpio, carrier_hz):
 
         """
-        Initialises an IR tx on a Pi's gpio with a carrier of
+        Constructor. Initialises an tx on a gpio with a carrier of
         carrier_hz.
         """
 
@@ -22,11 +22,19 @@ class tx:
         pi.set_mode(gpio, pigpio.OUTPUT)
 
     def clear_code(self):
+        """
+        Clear the current wave
+        """
+        
         self.wf = []
         if self.wid >= 0:
             self.pi.wave_delete(self.wid)
 
     def send_code(self):
+        """
+        Send the current wave
+        """
+        
         pulses = self.pi.wave_add_generic(self.wf)
         print("waveform uses {} pulses".format(pulses))
         self.wid = self.pi.wave_create()
@@ -36,6 +44,10 @@ class tx:
                 pass
 
     def add_to_code(self, on, off):
+        """
+        Add to the current wave. Add pulses at the carrier freq to fill
+        on time, add empty off time.
+        """
 
         # add on cycles of carrier
         for x in range(on):
