@@ -62,8 +62,11 @@ class rx_pigpio(threading.Thread):
                 
             # If all of the bits are received, add it to transmissions and reset bits
             if len(self.bits) == (self.dataBits + self.addressBits)
-                self.transmissions.put(self.bits)
-                self.bits = []
+                # Separate into data and address, put in Queue
+                transData = self.bits[0:dataBits]
+                transAddress = self.bits[dataBits:]
+                self.transmissions.put((transData, transAddress))
+                self.bits = []  # Clear bits list
                 
         self.high = False
     
