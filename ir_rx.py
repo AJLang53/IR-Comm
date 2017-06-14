@@ -53,7 +53,7 @@ class rx_pigpio:
             timeHigh = pigprio.tickDiff(self.riseTime, tick)
             if abs(timeHigh - self.dig1) < self.tol:
                 self.bits.append('1')
-            else
+            else:
                 self.bits.append('0')
                 
             # If all of the bits are received, add it to transmissions and reset bits
@@ -70,7 +70,7 @@ class rx_pigpio:
         
         if len(self.transmissions) != 0:
             return True
-        else
+        else:
             return False
     
     def getTransmission(self):
@@ -107,8 +107,8 @@ class rx_rpi_gpio:
         
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(self.gpio, GPIO.IN)
-        GPIO.add_event_detect(self.gpio,GPIO_RISING, callback=self.rising)
-        GPIO.add_event_detect(self.gpio,GPIO_FALLING, callback=self.falling)
+        GPIO.add_event_detect(self.gpio, GPIO_RISING, callback=self.rising)
+        GPIO.add_event_detect(self.gpio, GPIO_FALLING, callback=self.falling)
         
     def rising(self):
         """
@@ -119,7 +119,6 @@ class rx_rpi_gpio:
             self.riseTime = datetime.now()
             
         self.high = True
-        
         
     def falling(self):
         """
@@ -137,7 +136,7 @@ class rx_rpi_gpio:
             timeHigh = datetime.now() - self.riseTime
             if abs(timeHigh.microseconds - self.dig1) < self.tol:
                 self.bits.append('1')
-            else
+            else:
                 self.bits.append('0')
                 
             # If all of the bits are received, add it to transmissions and reset bits
@@ -145,7 +144,26 @@ class rx_rpi_gpio:
                 self.transmissions.append(self.bits)
                 self.bits = []
                 
-        self.high = False  
+        self.high = False
         
+    def received(self):
+        """
+        Return transmission state
+        """
         
+        if len(self.transmissions) != 0:
+            return True
+        else:
+            return False
+    
+    def getTransmission(self):
+        """
+        Return the oldest transmission as a tuple of (data, address) and removes it
+        """
+        
+        trans = self.transmissions.pop(0)
+        transData = trans[0:dataBits]
+        transAddress = trans[dataBits:]
+            
+        return (transData, transAddress)      
 
