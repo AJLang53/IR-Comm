@@ -1,15 +1,19 @@
 import pigpio
+import threading
+import Queue
 import RPi.GPIO as GPIO
 from datetime import datetime
 
-class rx_pigpio:
+class rx_pigpio(threading.Thread):
 
-    def __init__(self, pi, gpio, dig1, dig0, startBit, dataBits,addressBits):
+    def __init__(self, pi, gpio, transmissions, dig1, dig0, startBit, dataBits,addressBits):
         """
         Constructor. Sets the GPIO pin to input mode, and connects callbacks to rising and falling edge events
         """
+        threading.Thread.__init__(self)
         self.pi = pi
         self.gpio = gpio
+        self.transmissions = transmissions  # Shared transmissions queue
         self.dig1 = dig1    # Length of digital 1
         self.dig0 = dig0    # Length of digital 0
         self.startBit = startBit    # Length of start bit
@@ -17,15 +21,15 @@ class rx_pigpio:
         self.addressBits = addressBits  # Total number of address bits
         
         self.tol = 100      # 100 microsecond tolerance
+        self.timeout = 1000000  # 1 second timeout
         self.started = False
         self.high = False
         self.riseTime = 0
-        self.transmissions = []
         self.bits = []
         
+        self.interrupt = False
+        
         self.pi.set_mode(self.gpio, pigpio.INPUT)
-        cb_rising = self.pi.callback(self.gpio, pigpio.RISING_EDGE, self.rising)
-        cb_falling = self.pi.callback(self.gpio, pigpio.FALLING_EDGE, self.falling)
         
     def rising(self, gpio, level, tick):
         """
@@ -58,31 +62,30 @@ class rx_pigpio:
                 
             # If all of the bits are received, add it to transmissions and reset bits
             if len(self.bits) == (self.dataBits + self.addressBits)
-                self.transmissions.append(self.bits)
+                self.transmissions.put(self.bits)
                 self.bits = []
                 
         self.high = False
-            
-    def received(self):
-        """
-        Return transmission state
-        """
-        
-        if len(self.transmissions) != 0:
-            return True
-        else:
-            return False
     
-    def getTransmission(self):
+    def checkTimeout(self):
         """
-        Return the oldest transmission as a tuple of (data, address) and removes it
+        Reset if too much time has passed without receiving all the expected bits
+        """
+        if self.started:
+            if pigpio.tickDiff(self.riseTime,pigpio.get_current_tick()) > self.timeout:
+                self.started = False
+                self.bits = []
+            
+    def run(self):
+        """
+        Connect the callback functions and check the timeout repeatedly
         """
         
-        trans = self.transmissions.pop(0)
-        transData = trans[0:dataBits]
-        transAddress = trans[dataBits:]
-            
-        return (transData, transAddress)
+        cb_rising = self.pi.callback(self.gpio, pigpio.RISING_EDGE, self.rising)
+        cb_falling = self.pi.callback(self.gpio, pigpio.FALLING_EDGE, self.falling)  
+        
+        while not self.interrupt:
+            self.checkTimeout()
     
 class rx_rpi_gpio:
 
