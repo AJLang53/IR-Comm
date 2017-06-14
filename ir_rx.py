@@ -6,7 +6,7 @@ from datetime import datetime
 
 class rx_pigpio(threading.Thread):
 
-    def __init__(self, pi, gpio, transmissions, dig1, dig0, startBit, dataBits,addressBits):
+    def __init__(self, pi, gpio, transmissions, interrupt, dig1, dig0, startBit, dataBits,addressBits):
         """
         Constructor. Sets the GPIO pin to input mode, and connects callbacks to rising and falling edge events
         """
@@ -27,7 +27,7 @@ class rx_pigpio(threading.Thread):
         self.riseTime = 0
         self.bits = []
         
-        self.interrupt = False
+        self.interrupt = interrupt
         
         self.pi.set_mode(self.gpio, pigpio.INPUT)
         
@@ -87,7 +87,7 @@ class rx_pigpio(threading.Thread):
         cb_rising = self.pi.callback(self.gpio, pigpio.RISING_EDGE, self.rising)
         cb_falling = self.pi.callback(self.gpio, pigpio.FALLING_EDGE, self.falling)  
         
-        while not self.interrupt:
+        while self.interrupt.empty():
             self.checkTimeout()
     
 class rx_rpi_gpio:
