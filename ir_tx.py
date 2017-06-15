@@ -17,7 +17,9 @@ class tx:
         self.off_mics = self.micros - self.on_mics
 
         self.wf = []
-        self.wid = -1
+        self.pulseWF = []
+        self.wave = -1
+        self.pulse = -1
 
         pi.set_mode(gpio, pigpio.OUTPUT)
 
@@ -27,23 +29,23 @@ class tx:
         """
         
         self.wf = []
-        if self.wid >= 0:
-            self.pi.wave_delete(self.wid)
+        if self.wave >= 0:
+            self.pi.wave_delete(self.wave)
 
-    def send_code(self):
+    def send_wave(self):
         """
         Send the current wave
         """
         
-        pulses = self.pi.wave_add_generic(self.wf)
+        self.pi.wave_add_generic(self.wf)
+        self.wave = self.pi.wave_create()
         print("waveform uses {} pulses".format(pulses))
-        self.wid = self.pi.wave_create()
-        if self.wid >= 0:
-            self.pi.wave_send_once(self.wid)
+        if self.wave >= 0:
+            self.pi.wave_send_once(self.wave)
             while self.pi.wave_tx_busy():
                 pass
 
-    def add_to_code(self, on, off):
+    def add_to_wave(self, on, off):
         """
         Add to the current wave. Add pulses at the carrier freq to fill
         on time, add empty off time.
@@ -56,3 +58,30 @@ class tx:
 
         # add off cycles of no carrier
         self.wf.append(pigpio.pulse(0, 0, off * self.micros))
+        
+    def sendPulse(self, pulseLength):
+        """
+        Sends a single pulse of length pulseLength
+        """
+        
+        # Create the Pulse
+        self.pulseWF.append(pigpio.pulse(1<<self.gpio, 0, pulseLength))
+        self.pulseWF.append(pigpio.pulse(0, 1<<self.gpio, pulseLength))
+        
+        # Make a new waveform
+        self.pi.wave_add_generic(self.pulseWF)
+        self.pulse = self.pi.wave_create()
+        print("Sending a single pulse of length {}".format(pulseLength))
+        
+        # Send the pulse
+        if self.pulse >= 0:
+            self.pi.wave_send_once(self.pulse)
+            while self.pi.wave_tx_busy():
+                pass
+                self.wf = []
+        
+        # Delete the pulse waveform
+        if self.pulse >= 0:
+            self.pi.wave_delete(self.pulse)
+        
+        
