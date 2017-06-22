@@ -8,21 +8,22 @@ tx = ir_tx.tx(pi, 18, 38000)
 
 tx.clear_code()
 
-tx.add_to_code(92, 23) # Start
-tx.add_to_code(46, 23) # 1
-tx.add_to_code(23, 23) # 0
-tx.add_to_code(23, 23) # 0
-tx.add_to_code(46, 23) # 1
-tx.add_to_code(23, 23) # 0
-tx.add_to_code(46, 23) # 1
-tx.add_to_code(23, 23) # 0
-tx.add_to_code(46, 23) # 1
-tx.add_to_code(23, 23) # 0
-tx.add_to_code(23, 23) # 0
-tx.add_to_code(46, 23) # 1
-tx.add_to_code(23, 23) # 0
+tx.add_to_wave(92, 23) # Start
+tx.add_to_wave(46, 23) # 1
+tx.add_to_wave(23, 23) # 0
+tx.add_to_wave(23, 23) # 0
+tx.add_to_wave(46, 23) # 1
+tx.add_to_wave(23, 23) # 0
+tx.add_to_wave(46, 23) # 1
+tx.add_to_wave(23, 23) # 0
+tx.add_to_wave(46, 23) # 1
+tx.add_to_wave(23, 23) # 0
+tx.add_to_wave(23, 23) # 0
+tx.add_to_wave(46, 23) # 1
+tx.add_to_wave(23, 23) # 0
 
-tx.send_code()
+tx.send_wave()
 tx.clear_code()
 
 pi.stop()
+print("Finished")

@@ -39,7 +39,7 @@ class tx:
         
         self.pi.wave_add_generic(self.wf)
         self.wave = self.pi.wave_create()
-        print("waveform uses {} pulses".format(pulses))
+##        print("waveform uses {} pulses".format(pulses))
         if self.wave >= 0:
             self.pi.wave_send_once(self.wave)
             while self.pi.wave_tx_busy():
