@@ -7,7 +7,7 @@ pi = pigpio.pi()
 tx = ir_tx.tx(pi, 18, 38000)
 
 msg = int(raw_input("Message (0-127): "))
-adr = int(raw_input("Address 0-32): "))
+adr = int(raw_input("Address (0-32): "))
 
 msgB = bin(msg)[2:]
 adrB = bin(adr)[2:]
