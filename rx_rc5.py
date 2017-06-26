@@ -1,16 +1,16 @@
 import RPi.GPIO as GPIO
 from datetime import datetime
 
-gpio = 23
-
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(gpio, GPIO.IN)
+GPIO.setup(18, GPIO.IN)
+
+bitSize = 225
 
 while True:
     lvl = 1
 
     while lvl:
-        lvl = GPIO.input(gpio)
+        lvl = GPIO.input(18)
 
     startTime = datetime.now()
 
@@ -22,7 +22,7 @@ while True:
     previousLvl = 0
 
     started = False
-    dataReady = False
+    toggle = False
 
     while True:
         if lvl != previousLvl:
@@ -32,17 +32,22 @@ while True:
 
             raw.append((previousLvl, pulseLength.microseconds))
 
-            if abs(pulseLength.microseconds - 2400) <100:
+            if abs(pulseLength.microseconds - bitSize) < bitSize/2:
                 started = True
 
             if started:
-                if abs(pulseLength.microseconds - 1200) < 100:
-                    data+='1'
-                elif abs(pulseLength.microseconds - 600) < 100:
-                    if dataReady:
+                if abs(pulseLength.microseconds - bitSize) < bitSize/2:
+                    if previousLvl == 0 and toggle == False:
+                        data+='1'
+                    elif previousLvl == 1 and toggle == True:
                         data+='0'
+                elif abs(pulseLength.microseconds - (2*bitSize)) < bitSize/2:
+                    if previousLvl == 1:
+                        data+='0'
+                        toggle = True
                     else:
-                        dataReady = True
+                        data+='1'
+                        toggle = False
 
         if lvl:
             numOnes = numOnes + 1
@@ -54,21 +59,18 @@ while True:
             break
 
         previousLvl = lvl
-        lvl = GPIO.input(gpio)
+        lvl = GPIO.input(18)
     transTime = 0
     print "Raw:"
     for (lvl, pulse) in raw:
         print lvl, pulse
         transTime += pulse
 
-    interpData = ''
-    while len(data) != 0:
-        interpData+=data[0]
-        data = data[2:]
-    print("Data: "+interpData+'\n')
+    data=data[1:]
+
+    print("\nBinary: "+data)
     print("Transmission Time: "+str(transTime))
     try:
-        print("Message: "+str(int(interpData[0:7],2)))
-        print("Address: "+str(int(interpData[7:],2)))
+        print("Decimal: "+str(int(data,2))+'\n')
     except Exception, e:
         pass
