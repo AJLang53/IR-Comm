@@ -81,6 +81,19 @@ class CPR:
 
         return altCPR
 
+    def decodeAlt(self,altCPR):
+        altBase = int(altCPR[-5])
+        print(altBase)
+        if altBase == 1:
+            altBase = 25
+        else:
+            altBase = 100
+
+        altCPR = int(altCPR[0:-5]+altCPR[-4:],2)
+        return altCPR*altBase - 1000
+        
+        
+
     def decodeGlobal(self, evenPos, oddPos, myPos=None, mostRecent=0, surface = False):
             
         #cannot resolve surface positions unambiguously without knowing receiver position

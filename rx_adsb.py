@@ -40,6 +40,11 @@ if __name__ == '__main__':
     GPIO.setup(18, GPIO.IN)
     bitSize = 225
 
+    evenReady = False
+    oddReady = False
+
+    cpr = CPR()
+
     # Start the loop
     while True:
         lvl = 1
@@ -57,6 +62,7 @@ if __name__ == '__main__':
         previousLvl = 0
         started = False
         toggle = False
+        process = True
 
         while True:
             # If the lvl has changed, determine the pulse length
@@ -98,13 +104,11 @@ if __name__ == '__main__':
             previousLvl = lvl
             lvl = GPIO.input(18)
 
-        # After each timeout or complete transmission, output results
         transTime = 0
-        print "Raw:"
         for (lvl, pulse) in raw:
-            print lvl, pulse
             transTime += pulse
-
+        
+        # Remove the start bit
         received=received[1:]
 
         # Parse the binary
@@ -113,10 +117,10 @@ if __name__ == '__main__':
             EC = int(received[5:8],2)
             ICA024 = hex(int(received[8:32],2))
             data = received[32:88]
-            TC = int(data[0:4],2)
-            SS = int(data[4:5],2)
-            NICsb = int(data[6],2)
-            altCPR = data[7:19]
+            TC = int(data[0:5],2)
+            SS = int(data[5:7],2)
+            NICsb = int(data[7],2)
+            altCPR = data[8:20]
             T = int(data[20],2)
             cprOddEven = int(data[21],2)
             latCPR = int(data[22:39],2)*1.0     # Make lat and lon floats
@@ -124,38 +128,48 @@ if __name__ == '__main__':
             parity = received[88:]
         except:
             print("Error with received binary")
+            process = False
 
-        checksum = crc(parity)
-        if checksum != parity:  # Compare the checksums
-            print("CORRUPTION")
-        else:
-            if DF == 17:
-                if TC ==11:
-                    if localLoc:    # If using local location, find immediately
-                        # Get the Lat and Lon in degrees
-                        loc = cpr.decodeLocal(myLoc, (latCPR,lonCPR),T)
-                        altFeet = cpr.decodeAlt(altCPR)
-                        print("Received Lat: "+str(loc[0]))
-                        print("Received Lon: "+str(loc[1]))
-                        print("Received Alt: "+str(altFeet))
-                    else:   # Otherwise wait for both odd and even messages
-                        if not (evenReady and oddReady):
-                            if T:
-                                evenLoc = (latCPR, lonCPR)
-                                altCPR = cpr.decodeAlt(altCPR)
-                                evenReady = True
-                            else:
-                                oddLoc = (latCPR, lonCPR)
-                                altCPR = cpr.decodeAlt(altCPR)
-                                oddReady = True
+            
+        # Process the data
+        if process:
+            checksum = crc(parity)
+            if checksum != parity:  # Compare the checksums
+                print("CORRUPTION")
+            else:
+                if DF == 17:
+                    if TC ==11:
+                        if not cprOddEven:
+                            evenLoc = (latCPR, lonCPR)
+                            altFeet = cpr.decodeAlt(altCPR)
+                            evenReady = True
+                            print("Even Message Received in "+str(transTime))
                         else:
+                            oddLoc = (latCPR, lonCPR)
+                            altFeet = cpr.decodeAlt(altCPR)
+                            oddReady = True
+                            print("Odd Message Received in "+str(transTime))
+                            
+                        if localLoc:    # If using local location, find immediately
+                            # Get the Lat and Lon in degrees
+                            loc = cpr.decodeLocal(myLoc, (latCPR,lonCPR),cprOddEven)
+                            altFeet = cpr.decodeAlt(altCPR)
+                            print("Received Lat (Local): "+str(loc[0]))
+                            print("Received Lon (Local): "+str(loc[1]))
+                            print("Received Alt (Local): "+str(altFeet))
+
+
+                        if evenReady and oddReady:
                             loc = cpr.decodeGlobal(evenLoc, oddLoc)
 
-                            print("Received Lat: "+str(loc[0]))
-                            print("Received Lon: "+str(loc[1]))
-                            print("Received Alt: "+str(altFeet))
+                            print("Received Lat (Global): "+str(loc[0]))
+                            print("Received Lon (Global): "+str(loc[1]))
+                            print("Received Alt (Global): "+str(altFeet))
+
+                            evenReady = False
+                            oddReady = False
+                            
+                    else:
+                        print("Wrong Type Code")
                 else:
-                    print("Wrong Type Code")
-            else:
-                print("Wrong data format")
-        
+                    print("Wrong data format")
