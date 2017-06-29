@@ -1,29 +1,7 @@
-import time
+import time, math
 import pigpio
 import ir_tx
-import math
-
-def roundTo(n,base):
-    return int(round(base*round(n/base),2))
-
-def mod(x,y):
-    return x-y*math.floor(x/y)
-
-def NL(lat,NZ):
-    try:
-        num = 1-math.cos(math.pi/(2*NZ))
-        den = math.pow(math.cos(math.pi/180 * abs(lat)),2)
-        NL = math.floor(2*math.pi*math.pow(math.acos(1 - num/den),-1))
-    except:
-        print("NL Exception")
-        return 1
-    
-    if NL < 1:
-        return 1
-    elif NL > 59:
-        return 59
-    else:
-        return NL
+from CPR import CPR
 
 def crc(msg, encode = False):
     GENERATOR = '1111111111111010000001001'
@@ -38,7 +16,7 @@ def crc(msg, encode = False):
                 msgbin[i+j] = str((int(msgbin[i+j])^int(GENERATOR[j])))
 
     reminder = ''.join(msgbin[-24:])
-    return reminderdef roundTo(n,base):
+    return reminder
 
     
 # Transmit Parameters
@@ -73,37 +51,12 @@ lon = float(raw_input("Longitude: "))
 alt = float(raw_input("Altitude: "))
 
 # Create the binary lat and lon in CPR format
-dLat = 360/(4*NZ)
-
-YZ = math.floor(math.pow(2,17)*(mod(lat,dLat)/dLat) + 0.5)
-
-RLat = dLat*(YZ/math.pow(2,17) + math.floor(lat/dLat))
-
-dLon = 360/NL(RLat,NZ)
-
-XZ = math.floor(math.pow(2,17)*(mod(lon,dLon)/dLon) + 0.5)
-
-YZ = int(mod(YZ,math.pow(2,17)))
-XZ = int(mod(XZ,math.pow(2,17)))
-
-YZBin = bin(YZ)[2:]
-while len(YZBin)<17:
-    YZBin = '0'+YZBin
-    
-XZBin = bin(XZ)[2:]
-while len(XZBin)<17:
-    XZBin = '0'+XZBin
+cpr = CPR()
+evenLoc = bin(cpr.encode(lat, lon, 0))[2:]
+oddLoc = bin(cpr.encode(lat, lon, 1))[2:]
 
 # Create the binary altitude in CPR format
-altCPRInt = int((roundTo(alt,altBase)+1000)/altBase)
-altCPR = bin(altCPRInt)[2:]
-if altBase == 25:
-    altCPR = altCPR[0:-4]+'1'+altCPR[-4:]
-elif altBase == 100:
-    altCPR = altCPR[0:-4]+'0'+altCPR[-4:]
-
-while len(altCPR)<12:
-    altCPR = '0'+altCPR
+cprAlt = cpr.encodeAlt(alt, altBase)
     
 # Create the Type code, surveillance status, NIC supplement-B, Time, and CPR Odd/Even binary
 TC = bin(11)[2:]
