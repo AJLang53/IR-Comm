@@ -9,12 +9,12 @@ pulseNum = bitSize/(1000000/carrierHz)
 pi = pigpio.pi()
 tx = ir_tx.tx(pi, 18, carrierHz)
 
-msg = int(raw_input("Message (0-33554431): "))
+msg = int(raw_input("Message (0-5.192296e33): "))
 
 msgB = bin(msg)[2:]
 trans=msgB
 
-while len(trans)<24:
+while len(trans)<112:
     trans = '0'+trans
 
 print('Sending: '+str(trans))
