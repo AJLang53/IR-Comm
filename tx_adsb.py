@@ -45,7 +45,7 @@ if __name__ == '__main__':
     preamble = DFBin+ECBin+ICAO24
 
     # Location Information
-    altBase = 25
+    altBase = 100
     NZ = 15
     lat = float(raw_input("Latitude: "))
     lon = float(raw_input("Longitude: "))
@@ -126,7 +126,8 @@ if __name__ == '__main__':
 
 
             time.sleep(0.1) # 100 ms between even and odd tranmissions
-
+            
+            tx.add_to_wave(pulseNum, pulseNum)
             k=0
             while k < len(oddTrans):
                 if oddTrans[k] == '1':
@@ -137,7 +138,7 @@ if __name__ == '__main__':
                 k+=1
 
             tx.send_wave()
-
+            pi.wave_clear()
             time.sleep(0.1)
             
     except KeyboardInterrupt:

@@ -27,10 +27,13 @@ class tx:
         """
         Clear the current wave
         """
-        
+       
         self.wf = []
-        if self.wave >= 0:
-            self.pi.wave_delete(self.wave)
+	try:
+            if self.wave >= 0:
+                self.pi.wave_delete(self.wave)
+        except:
+            pass
 
     def send_wave(self):
         """
