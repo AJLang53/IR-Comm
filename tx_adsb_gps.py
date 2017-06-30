@@ -150,13 +150,26 @@ if __name__ == '__main__':
     # Create and begin sending
     try:
         start = time.time()
+        timing = []
         while True:
+	    """
+	    Retrieving the GPS location from the Queue, encoding it to CPR format and then
+	    creating the ADS-B message takes 12.34 ms.
+	
+	    Sending the Even Message takes 66.591 ms
+
+	    Sending the Odd Message take 66.507 ms
+
+       	    In order to broadcast at 10 Hz, this loop needs to run in 200 ms, for a total
+            added delay of 54.66 ms, divided into 27.33 ms delays after each transmission
+            """
+
 
             # Get the newest GPS location
             if not gpsQ.empty():
                 coords = gpsQ.get()
                 while not gpsQ.empty():
-                    gpsQ.get()
+                   gpsQ.get()
 
                 lat = coords[0]
                 lon = coords[1]
@@ -197,14 +210,14 @@ if __name__ == '__main__':
                 evenTrans = '0'+evenTrans
             while len(oddTrans)<112:
                 oddTrans = '0'+oddTrans
-
 ##            print("ADS-B Even Transmission: "+evenTrans)
 ##            print("ADS-B Odd Transmission: "+oddTrans)
 ##            print('\n')
-            delay = time.time()            
-            tx.clear_code()
-            tx.add_to_wave(pulseNum, pulseNum)
 
+	    # Send the Even Message            
+            tx.clear_code()
+
+            tx.add_to_wave(pulseNum, pulseNum)	# Start bit
             k=0
             while k < len(evenTrans):
                 if evenTrans[k] == '1':
@@ -213,17 +226,18 @@ if __name__ == '__main__':
                     tx.add_to_wave(0, pulseNum)
                     tx.add_to_wave(pulseNum, 0)
                 k+=1
-
-            tx.send_wave()
-            delay = time.time()
-            tx.clear_code()
-
-
-            while (time.time() - delay)<0.02:
-                pass
-##            time.sleep(0.1) # 100 ms between even and odd tranmissions
             
-            tx.add_to_wave(pulseNum, pulseNum)
+            tx.send_wave()
+
+            # Delay for 27.33 ms
+            check = time.time()
+            while(time.time() < check + 0.02733):
+                pass
+            
+            # Send the Odd Message
+            tx.clear_code()
+            
+            tx.add_to_wave(pulseNum, pulseNum)	# Start bit
             k=0
             while k < len(oddTrans):
                 if oddTrans[k] == '1':
@@ -234,13 +248,18 @@ if __name__ == '__main__':
                 k+=1
 
             tx.send_wave()
-            delay = time.time()
-            pi.wave_clear()
-            while (time.time() - delay)<0.02:
+            pi.wave_clear()	# Clear the waves
+
+            # Delay for 27.33 ms
+            check = time.time()
+            while(time.time() < check + 0.02733):
                 pass
-##            time.sleep(0.1)
-            print(time.time()-start)
+
+            timing.append(time.time() - start)
             start = time.time()
     except KeyboardInterrupt:
+	print('\n')
+        print("Run Time: "+str(sum(timing)/len(timing)))
+	print(str(len(timing))+" samples")
         pi.stop()
         print("Stopped")
