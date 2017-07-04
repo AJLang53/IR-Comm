@@ -45,6 +45,9 @@ if __name__ == '__main__':
 
     cpr = CPR()
 
+    tenCount = 0
+    tenCountTime = time.time()
+
     # Start the loop
     while True:
         lvl = 1
@@ -110,6 +113,11 @@ if __name__ == '__main__':
         
         # Remove the start bit
         received=received[1:]
+        tenCount +=1
+            print(time.time() - tenCountTime)
+            time.sleep(5)
+            tenCount = 0
+            tenCountTime = time.time()
 
         # Parse the binary
         try:
@@ -138,7 +146,7 @@ if __name__ == '__main__':
                 print("CORRUPTION")
             else:
                 if DF == 17:
-                    if TC ==11:
+                    if TC == 11:
                         if not cprOddEven:
                             evenLoc = (latCPR, lonCPR)
                             altFeet = cpr.decodeAlt(altCPR)

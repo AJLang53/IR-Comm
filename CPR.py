@@ -83,7 +83,6 @@ class CPR:
 
     def decodeAlt(self,altCPR):
         altBase = int(altCPR[-5])
-        print(altBase)
         if altBase == 1:
             altBase = 25
         else:

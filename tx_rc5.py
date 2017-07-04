@@ -3,7 +3,7 @@ import pigpio
 import ir_tx
 
 carrierHz = 38000
-bitSize = 225
+bitSize = 300
 pulseNum = bitSize/(1000000/carrierHz)
 
 pi = pigpio.pi()

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import time, math
 import pigpio
 import ir_tx
@@ -107,7 +108,7 @@ if __name__ == '__main__':
     
     # Transmit Parameters
     carrierHz = 38000
-    bitSize = 225   # The time size of the on cycle
+    bitSize = 300   # The time size of the on cycle
     pulseNum = bitSize/(1000000/carrierHz)  # Number of cycles of carrier to fill bitSize
     gpio = 18
     altBase = 25
@@ -156,12 +157,10 @@ if __name__ == '__main__':
 	    Retrieving the GPS location from the Queue, encoding it to CPR format and then
 	    creating the ADS-B message takes 12.34 ms.
 	
-	    Sending the Even Message takes 66.591 ms
-
-	    Sending the Odd Message take 66.507 ms
+	    Sending the Message takes 90.336 ms
 
        	    In order to broadcast at 10 Hz, this loop needs to run in 200 ms, for a total
-            added delay of 54.66 ms, divided into 27.33 ms delays after each transmission
+            added delay of 6.988 ms, divided into 3.494 ms delays after each transmission
             """
 
 
@@ -210,9 +209,9 @@ if __name__ == '__main__':
                 evenTrans = '0'+evenTrans
             while len(oddTrans)<112:
                 oddTrans = '0'+oddTrans
-##            print("ADS-B Even Transmission: "+evenTrans)
-##            print("ADS-B Odd Transmission: "+oddTrans)
-##            print('\n')
+           # print("ADS-B Even Transmission: "+evenTrans)
+           # print("ADS-B Odd Transmission: "+oddTrans)
+           # print('\n')
 
 	    # Send the Even Message            
             tx.clear_code()
@@ -229,9 +228,9 @@ if __name__ == '__main__':
             
             tx.send_wave()
 
-            # Delay for 27.33 ms
+            # Delay for 3.494 ms
             check = time.time()
-            while(time.time() < check + 0.02733):
+            while(time.time() < check + 0.003494):
                 pass
             
             # Send the Odd Message
@@ -249,16 +248,14 @@ if __name__ == '__main__':
 
             tx.send_wave()
             pi.wave_clear()	# Clear the waves
-
-            # Delay for 27.33 ms
-            check = time.time()
-            while(time.time() < check + 0.02733):
+            # Delay for 3.949 ms
+            while(time.time() < check + 0.003494):
                 pass
 
             timing.append(time.time() - start)
             start = time.time()
     except KeyboardInterrupt:
-	print('\n')
+    	print('\n')
         print("Run Time: "+str(sum(timing)/len(timing)))
 	print(str(len(timing))+" samples")
         pi.stop()
