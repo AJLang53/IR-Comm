@@ -22,9 +22,9 @@ def crc(msg, encode = False):
 if __name__ == '__main__':
     
     # Transmit Parameters
-    carrierHz = 38000
+    carrierHz = 1666.6666666666*2
     bitSize = 300   # The time size of the on cycle
-    pulseNum = bitSize/(1000000/carrierHz)  # Number of cycles of carrier to fill bitSize
+    pulseNum = 1  # Number of cycles of carrier to fill bitSize
     gpio = 23
 
 
@@ -103,7 +103,7 @@ if __name__ == '__main__':
 
     # Set up for transmitting
     pi = pigpio.pi()
-    tx = ir_tx.tx(pi, gpio, carrierHz)
+    tx = ir_tx.tx(pi, gpio, carrierHz, False)
 
     # Create and begin sending
     try:

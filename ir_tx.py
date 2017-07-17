@@ -2,7 +2,7 @@ import pigpio
 
 class tx:
 
-    def __init__(self, pi, gpio, carrier_hz):
+    def __init__(self, pi, gpio, carrier_hz, pwm = True):
 
         """
         Constructor. Initialises an tx on a gpio with a carrier of
@@ -12,6 +12,7 @@ class tx:
         self.pi = pi
         self.gpio = gpio
         self.carrier_hz = carrier_hz
+        self.pwm = pwm
         self.micros = 1000000 / carrier_hz
         self.on_mics = self.micros / 2
         self.off_mics = self.micros - self.on_mics
@@ -39,7 +40,7 @@ class tx:
         """
         Send the current wave
         """
-        
+
         self.pi.wave_add_generic(self.wf)
         self.wave = self.pi.wave_create()
 ##        print("waveform uses {} pulses".format(pulses))
@@ -48,19 +49,27 @@ class tx:
             while self.pi.wave_tx_busy():
                 pass
 
+        self.pi.write(self.gpio,0)
+
     def add_to_wave(self, on, off):
         """
         Add to the current wave. Add pulses at the carrier freq to fill
         on time, add empty off time.
         """
 
-        # add on cycles of carrier
-        for x in range(on):
-           self.wf.append(pigpio.pulse(1<<self.gpio, 0, self.on_mics))
-           self.wf.append(pigpio.pulse(0, 1<<self.gpio, self.off_mics))
+        if self.pwm:
+            # add on cycles of carrier
+            for x in range(on):
+                self.wf.append(pigpio.pulse(1<<self.gpio, 0, self.on_mics))
+                self.wf.append(pigpio.pulse(0, 1<<self.gpio, self.off_mics))
 
-        # add off cycles of no carrier
-        self.wf.append(pigpio.pulse(0, 0, off * self.micros))
+            # add off cycles of no carrier
+            self.wf.append(pigpio.pulse(0, 0, off * self.micros))
+
+        else:
+            self.wf.append(pigpio.pulse(1<<self.gpio, 0, on * self.micros))
+            self.wf.append(pigpio.pulse(0, 1<<self.gpio, off * self.micros))
+
         
     def sendPulse(self, pulseLength):
         """

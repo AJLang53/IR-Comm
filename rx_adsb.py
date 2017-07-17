@@ -38,15 +38,12 @@ if __name__ == '__main__':
     # Set up the receiver pins and bit size
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(18, GPIO.IN)
-    bitSize = 225
+    bitSize = 300
 
     evenReady = False
     oddReady = False
 
     cpr = CPR()
-
-    tenCount = 0
-    tenCountTime = time.time()
 
     # Start the loop
     while True:
@@ -113,11 +110,6 @@ if __name__ == '__main__':
         
         # Remove the start bit
         received=received[1:]
-        tenCount +=1
-            print(time.time() - tenCountTime)
-            time.sleep(5)
-            tenCount = 0
-            tenCountTime = time.time()
 
         # Parse the binary
         try:

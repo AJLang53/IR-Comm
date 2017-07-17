@@ -1,7 +1,7 @@
 import RPi.GPIO as GPIO
 from datetime import datetime
 
-gpio = 23
+gpio = 18
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(gpio, GPIO.IN)
@@ -32,13 +32,13 @@ while True:
 
             raw.append((previousLvl, pulseLength.microseconds))
 
-            if abs(pulseLength.microseconds - 2400) <100:
+            if abs(pulseLength.microseconds - 2400) < 600:
                 started = True
 
             if started:
-                if abs(pulseLength.microseconds - 1200) < 100:
+                if abs(pulseLength.microseconds - 1200) < 600:
                     data+='1'
-                elif abs(pulseLength.microseconds - 600) < 100:
+                elif abs(pulseLength.microseconds - 600) < 300:
                     if dataReady:
                         data+='0'
                     else:

@@ -4,7 +4,7 @@ from datetime import datetime
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(18, GPIO.IN)
 
-bitSize = 225
+bitSize = 300
 
 while True:
     lvl = 1
