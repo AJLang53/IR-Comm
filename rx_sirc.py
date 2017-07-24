@@ -9,7 +9,7 @@ GPIO.setup(gpio, GPIO.IN)
 while True:
     lvl = 1
 
-    while lvl:
+    while lvl:      # Receiver goes low when receiving
         lvl = GPIO.input(gpio)
 
     startTime = datetime.now()
@@ -25,13 +25,14 @@ while True:
     dataReady = False
 
     while True:
-        if lvl != previousLvl:
+        if lvl != previousLvl:      # If the level has changed, measure the pulse width
             now = datetime.now()
             pulseLength = now - startTime
             startTime = now
 
             raw.append((previousLvl, pulseLength.microseconds))
-
+            
+            # Process the pulse to determine corresponding bit (PWM, 2400 ms for start, 1200 ms for 1, 600 ms for 0)
             if abs(pulseLength.microseconds - 2400) < 600:
                 started = True
 
@@ -50,7 +51,7 @@ while True:
         else:
             numOnes = 0
 
-        if numOnes > 10000:
+        if numOnes > 10000:     # Timeout
             break
 
         previousLvl = lvl
@@ -67,7 +68,7 @@ while True:
         data = data[2:]
     print("Data: "+interpData+'\n')
     print("Transmission Time: "+str(transTime))
-    try:
+    try:   # SIRC encoding standard has message and address
         print("Message: "+str(int(interpData[0:7],2)))
         print("Address: "+str(int(interpData[7:],2)))
     except Exception, e:
