@@ -6,6 +6,7 @@ pi.set_mode(18,pigpio.OUTPUT)
 pi.write(18,0)
 on = False
 
+# Toggle the state of the pin when you hit enter, if you type x, exit
 while True:
 	input = raw_input()
 	if input == '':
