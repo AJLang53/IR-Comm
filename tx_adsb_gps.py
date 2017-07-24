@@ -74,6 +74,11 @@ class GPSThread(threading.Thread):
 
 
 def crc(msg, encode = False):
+    """
+    Cyclic Redundancy Check, checks that last 24 bits of the message
+    for errors during transmission
+    """
+
     GENERATOR = '1111111111111010000001001'
     msgbin = list(msg)
     
@@ -93,25 +98,28 @@ if __name__ == '__main__':
     folder = '/gpsLogs/'
     loggingGPS = False
 
+    # Determine the serial port with the GPS on it
     ports = serial.tools.list_ports.comports()
     for each in ports:
         if each.vid == 4292 and each.pid == 60000:
             gps = serial.Serial(port = each.device, baudrate = 9600, timeout = 5)
 
+    # Create Queues for the GPS thread
     gpsQ = Queue.LifoQueue()
     gpsResetQ = Queue.Queue()
     gpsExceptionsQ = Queue.Queue()
 
+    # Create and start the GPS thread
     gpsThread = GPSThread("gpsThread",gps,gpsQ,gpsExceptionsQ,gpsResetQ,loggingGPS)
     gpsThread.daemon = True
     gpsThread.start()
     
     # Transmit Parameters
     carrierHz = 38000
-    bitSize = 300   # The time size of the on cycle
+    bitSize = 300   # The time size of the on cycle (microseconds)
     pulseNum = bitSize/(1000000/carrierHz)  # Number of cycles of carrier to fill bitSize
     gpio = 18
-    altBase = 25
+    altBase = 25    # increments of either 25 ft or 100 ft for altitude encoding
     NZ = 15
 
     # Create the data format and emitter category binary
