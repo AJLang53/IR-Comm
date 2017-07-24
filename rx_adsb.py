@@ -5,6 +5,10 @@ from CPR import CPR
 import argparse
 
 def crc(msg, encode = False):
+    """
+    Cyclic Redundancy Check, checks that last 24 bits of the message
+    for errors during transmission
+    """
     GENERATOR = '1111111111111010000001001'
     msgbin = list(msg)
     
@@ -22,7 +26,7 @@ def crc(msg, encode = False):
 if __name__ == '__main__':
     # Handle the arguments
     ap = argparse.ArgumentParser()
-    ap.add_argument('--local',help='Reference Position: Lat,Lon')
+    ap.add_argument('--local',help='Reference Position: Lat,Lon')   # Allows for locally unambiguous locating
     args = vars(ap.parse_args())
     if args['local']:
         localLoc = True
@@ -38,7 +42,7 @@ if __name__ == '__main__':
     # Set up the receiver pins and bit size
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(18, GPIO.IN)
-    bitSize = 300
+    bitSize = 300       # Must match transmitter
 
     evenReady = False
     oddReady = False
@@ -65,7 +69,7 @@ if __name__ == '__main__':
         process = True
 
         while True:
-            # If the lvl has changed, determine the pulse length
+            # If the lvl has changed, determine the pulse length (PPM encoding)
             if lvl != previousLvl:
                 now = datetime.now()
                 pulseLength = now - startTime
@@ -97,7 +101,7 @@ if __name__ == '__main__':
             else:
                 numOnes = 0
 
-            if numOnes > 10000:
+            if numOnes > 10000:     # Timeout
                 break
 
             # Update for the next loop
@@ -113,19 +117,19 @@ if __name__ == '__main__':
 
         # Parse the binary
         try:
-            DF = int(received[0:5],2)
+            DF = int(received[0:5],2)       # Data format
             EC = int(received[5:8],2)
             ICA024 = hex(int(received[8:32],2))
-            data = received[32:88]
-            TC = int(data[0:5],2)
+            data = received[32:88]      # Data section
+            TC = int(data[0:5],2)       # Type Code
             SS = int(data[5:7],2)
             NICsb = int(data[7],2)
-            altCPR = data[8:20]
+            altCPR = data[8:20]         # Altitude, encoded
             T = int(data[20],2)
             cprOddEven = int(data[21],2)
-            latCPR = int(data[22:39],2)*1.0     # Make lat and lon floats
-            lonCPR = int(data[39:56],2)*1.0
-            parity = received[88:]
+            latCPR = int(data[22:39],2)*1.0     # Latitude, CPR encoded
+            lonCPR = int(data[39:56],2)*1.0     # Longitude, CPR encoded
+            parity = received[88:]      # CRC parity bits
         except:
             print("Error with received binary")
             process = False
@@ -137,8 +141,8 @@ if __name__ == '__main__':
             if checksum != parity:  # Compare the checksums
                 print("CORRUPTION")
             else:
-                if DF == 17:
-                    if TC == 11:
+                if DF == 17:        # ADS-B Mode S
+                    if TC == 11:     # ADS-B Mode S
                         if not cprOddEven:
                             evenLoc = (latCPR, lonCPR)
                             altFeet = cpr.decodeAlt(altCPR)
@@ -158,7 +162,7 @@ if __name__ == '__main__':
                             print("Received Lon (Local): "+str(loc[1]))
                             print("Received Alt (Local): "+str(altFeet))
 
-
+                        # If both even and odd message received, decode global position
                         if evenReady and oddReady:
                             loc = cpr.decodeGlobal(evenLoc, oddLoc)
 
