@@ -4,12 +4,12 @@ from datetime import datetime
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(18, GPIO.IN)
 
-bitSize = 300
+bitSize = 300       # Must match transmitter
 
 while True:
     lvl = 1
-
-    while lvl:
+    
+    while lvl:      # Receiver goes low when receiving
         lvl = GPIO.input(18)
 
     startTime = datetime.now()
@@ -25,13 +25,14 @@ while True:
     toggle = False
 
     while True:
-        if lvl != previousLvl:
+        if lvl != previousLvl:      # If the level has changed, measure the pulse width
             now = datetime.now()
             pulseLength = now - startTime
             startTime = now
 
             raw.append((previousLvl, pulseLength.microseconds))
-
+            
+            # Process the pulse to determine it's corresponding bit (PPM encoding)
             if abs(pulseLength.microseconds - bitSize) < bitSize/2:
                 started = True
 
@@ -55,7 +56,7 @@ while True:
         else:
             numOnes = 0
 
-        if numOnes > 10000:
+        if numOnes > 10000:     # Timeout
             break
 
         previousLvl = lvl
@@ -66,7 +67,7 @@ while True:
         print lvl, pulse
         transTime += pulse
 
-    data=data[1:]
+    data=data[1:]       # Remove the start bit
 
     print("\nBinary: "+data)
     print("Transmission Time: "+str(transTime))
