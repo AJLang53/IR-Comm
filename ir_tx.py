@@ -1,6 +1,10 @@
 import pigpio
 
 class tx:
+    """
+    Class to handle transmission. Input a GPIO pin and a carrier frequency,
+    add pulses, and then transmit.
+    """
 
     def __init__(self, pi, gpio, carrier_hz, pwm = True):
 
@@ -12,7 +16,7 @@ class tx:
         self.pi = pi
         self.gpio = gpio
         self.carrier_hz = carrier_hz
-        self.pwm = pwm
+        self.pwm = pwm		# True if directly modulating the pulses, False if using an external clock source
         self.micros = 1000000 / carrier_hz
         self.on_mics = self.micros / 2
         self.off_mics = self.micros - self.on_mics
@@ -53,8 +57,8 @@ class tx:
 
     def add_to_wave(self, on, off):
         """
-        Add to the current wave. Add pulses at the carrier freq to fill
-        on time, add empty off time.
+        Add to the current wave. Add 'on' number of pulses at the carrier freq, 
+	add 'off' pulses to fill off time.
         """
 
         if self.pwm:
