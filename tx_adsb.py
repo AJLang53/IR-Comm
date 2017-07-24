@@ -5,6 +5,10 @@ from CPR import CPR
 import argparse
 
 def crc(msg, encode = False):
+    """
+    Cyclic Redundancy Check, checks that last 24 bits of the message
+    for errors during transmission
+    """
     GENERATOR = '1111111111111010000001001'
     msgbin = list(msg)
     
@@ -59,7 +63,8 @@ if __name__ == '__main__':
     oddLoc = cpr.encode(lat, lon, 1)
     oddLat = bin(oddLoc[0])[2:]
     oddLon = bin(oddLoc[1])[2:]
-
+    
+    # Make sure the strings are the right length
     while len(evenLat)<17:
         evenLat = '0'+evenLat
     while len(evenLon)<17:
@@ -112,7 +117,7 @@ if __name__ == '__main__':
             tx.add_to_wave(pulseNum, pulseNum)
 
             k=0
-            while k < len(evenTrans):
+            while k < len(evenTrans):       # Encode the bits to PPM
                 if evenTrans[k] == '1':
                     tx.add_to_wave(pulseNum, pulseNum)
                 elif evenTrans[k] == '0':
@@ -129,7 +134,7 @@ if __name__ == '__main__':
             
             tx.add_to_wave(pulseNum, pulseNum)
             k=0
-            while k < len(oddTrans):
+            while k < len(oddTrans):       # Encode the bits to PPM
                 if oddTrans[k] == '1':
                     tx.add_to_wave(pulseNum, pulseNum)
                 elif oddTrans[k] == '0':
