@@ -9,7 +9,7 @@ pulseNum = bitSize/(1000000/carrierHz)
 pi = pigpio.pi()
 tx = ir_tx.tx(pi, 23, carrierHz)
 
-msg = int(raw_input("Message (0-5.192296e33): "))
+msg = int(raw_input("Message (0-5.192296e33): "))   # Max decimal value for 112 bits (ADS-B)
 
 msgB = bin(msg)[2:]
 trans=msgB
@@ -24,7 +24,7 @@ tx.clear_code()
 tx.add_to_wave(0, pulseNum)
 tx.add_to_wave(pulseNum, 0)
 k=0
-while k< len(trans):
+while k< len(trans):        # Encode the bits in PPM
     if trans[k] == '1':
         tx.add_to_wave(pulseNum, pulseNum)
     elif trans[k] == '0':
