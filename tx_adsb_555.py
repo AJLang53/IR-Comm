@@ -5,6 +5,10 @@ from CPR import CPR
 import argparse
 
 def crc(msg, encode = False):
+    """
+    Cyclic Redundancy Check, checks that last 24 bits of the message
+    for errors during transmission
+    """
     GENERATOR = '1111111111111010000001001'
     msgbin = list(msg)
     
@@ -22,8 +26,8 @@ def crc(msg, encode = False):
 if __name__ == '__main__':
     
     # Transmit Parameters
-    carrierHz = 1666.6666666666*2
-    bitSize = 300   # The time size of the on cycle
+    bitSize = 300
+    carrierHz = 1/((2*bitsize)/(1000000)) * 2 # Frequency with time high of bitSize
     pulseNum = 1  # Number of cycles of carrier to fill bitSize
     gpio = 23
 
